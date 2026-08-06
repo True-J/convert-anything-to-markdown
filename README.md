@@ -110,6 +110,12 @@ every other test runs regardless.
 Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines
 on adding extractors, reporting bugs, and submitting pull requests.
 
+### Good first issues
+
+New to the project? Check the [good first issues](https://github.com/nosliwhtes/convert-anything-to-markdown/labels/good%20first%20issue)
+label for small, well-scoped tasks. Each issue includes step-by-step instructions
+and points to the relevant files.
+
 ## License
 
 MIT. See [LICENSE](LICENSE).
