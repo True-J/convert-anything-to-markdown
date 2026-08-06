@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -14,7 +12,6 @@ from convert_anything_md.paths import (
     ensure_dir,
     safe_stem,
 )
-
 
 # ---------------------------------------------------------------------------
 # conflict_safe_name

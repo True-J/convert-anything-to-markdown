@@ -22,13 +22,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from convert_anything_md.detect import FileKind, detect_kind, is_scanned_pdf
+from convert_anything_md.extractors.anydoc import AnyDocExtractor
 from convert_anything_md.extractors.base import (
     ExtractionResult,
     Extractor,
     ExtractorError,
     ExtractorUnavailable,
 )
-from convert_anything_md.extractors.anydoc import AnyDocExtractor
 from convert_anything_md.extractors.epub import EpubExtractor
 from convert_anything_md.extractors.html import (
     BeautifulSoupHtmlExtractor,
@@ -57,7 +57,6 @@ from convert_anything_md.paths import (
     ensure_dir,
     safe_stem,
 )
-
 
 # ---------------------------------------------------------------------------
 # Extractor chains

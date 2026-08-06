@@ -9,7 +9,6 @@ import pytest
 
 from convert_anything_md.detect import FileKind, detect_kind, is_scanned_pdf
 
-
 # ---------------------------------------------------------------------------
 # Extension-driven detection (the fast path)
 # ---------------------------------------------------------------------------

@@ -37,7 +37,6 @@ from convert_anything_md.extractors.base import (
     word_count,
 )
 
-
 # Cache the resolved binary path so we don't re-search PATH on every call.
 _anydoc_bin: str | None = None
 _anydoc_checked = False

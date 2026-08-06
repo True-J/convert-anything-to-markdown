@@ -87,7 +87,7 @@ def main() -> int:
         CheckResult(
             "cli/convert-anything-md",
             cli is not None,
-            cli or "not installed — run `uv tool install ./convert-anything-to-markdown/src` from the kit root",
+            cli or "not installed; run: uv tool install ./src",
         )
     )
 

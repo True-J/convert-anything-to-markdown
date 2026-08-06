@@ -43,11 +43,10 @@ def desktop_dir() -> Path:
     else:
         desktop = _linux_desktop(home)
 
-    if not desktop.exists():
+    if not desktop.exists() and not home.exists():
         # Prefer Desktop even if missing (user may want us to create it);
         # but if the home dir itself is missing we fall back to CWD.
-        if not home.exists():
-            return Path.cwd()
+        return Path.cwd()
     return desktop
 
 

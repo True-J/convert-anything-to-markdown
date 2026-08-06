@@ -14,12 +14,9 @@ import io
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
-import pytest
-
 from convert_anything_md.cli import _resolve_inputs, main
-from convert_anything_md.router import EXTRACTOR_NAMES, _reorder_for_override
 from convert_anything_md.extractors.text import PlainTextExtractor
-
+from convert_anything_md.router import EXTRACTOR_NAMES, _reorder_for_override
 
 # ---------------------------------------------------------------------------
 # _resolve_inputs: literal files, missing files, dedup

@@ -17,7 +17,6 @@ from pathlib import Path
 
 import pytest
 
-
 REPO_SRC = Path(__file__).resolve().parent.parent  # <kit>/src
 INSTALL_PY = REPO_SRC / "scripts" / "install.py"
 
