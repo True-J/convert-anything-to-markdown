@@ -1,0 +1,32 @@
+# Build artifacts
+src/build/
+src/dist/
+src/convert_anything_md.egg-info/
+*.egg-info/
+*.whl
+*.tar.gz
+__pycache__/
+
+# Python caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+htmlcov/
+.coverage
+.tox/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Journey kit artifacts (not published)
+kit.md

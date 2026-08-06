@@ -1,0 +1,64 @@
+---
+name: Bug report
+about: Report a bug in document conversion
+title: "[BUG] "
+labels: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please fill in the details below so we can
+        reproduce the issue.
+  - type: input
+    id: file-type
+    attributes:
+      label: File type and extension
+      placeholder: e.g. PDF, DOCX, ODT
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command you ran
+      description: Include --verbose --json output if possible
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: engine
+    attributes:
+      label: Engine used
+      description: From the JSON "engine" field
+      placeholder: e.g. anydoc, docling, markitdown
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: e.g. macOS 14.5, Ubuntu 24.04, Windows 11
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: e.g. 3.12.4
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error message
+      description: The full error output, if any
+      render: shell
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened?
+    validations:
+      required: true

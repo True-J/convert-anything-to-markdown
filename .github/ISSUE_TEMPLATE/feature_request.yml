@@ -1,0 +1,32 @@
+---
+name: Feature request
+about: Suggest a new format, extractor, or improvement
+title: "[FEATURE] "
+labels: enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case. What file type or scenario isn't handled well today?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: What should happen instead? A new extractor? A new format? Better fallback logic?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What workarounds are you using today?
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Would you be willing to implement this?
+      options:
+        - label: Yes, I can open a PR
+        - label: No, just suggesting

@@ -1,0 +1,105 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "convert-anything-md"
+version = "1.5.0"
+description = "Convert PDFs, Office files, OpenDocument files, images, and web pages to clean Markdown. Chooses the best extractor per format. Runs offline with no API keys."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Seth Wilson" }]
+keywords = [
+    "markdown",
+    "pdf",
+    "docx",
+    "pptx",
+    "xlsx",
+    "odt",
+    "ods",
+    "odp",
+    "ocr",
+    "document-conversion",
+    "docling",
+    "markitdown",
+    "anydoc",
+    "trafilatura",
+    "agent-skill",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Text Processing :: Markup :: Markdown",
+    "Topic :: Text Processing :: General",
+]
+
+# Core deps are pure-wheel and cross-platform (macOS, Linux, Windows).
+# System binaries (pandoc, tesseract) and anydoc (npm) are opportunistic
+# fallbacks detected at runtime via shutil.which(); they are NOT hard requirements.
+dependencies = [
+    "pymupdf>=1.24.0",              # PDF rasterization + text sniffing (pure wheel)
+    "markitdown[all]>=0.0.1a3",     # Broad format coverage (Microsoft)
+    "docling>=1.16.0",              # Best-in-class PDF / Office extraction
+    "trafilatura>=1.12.0",          # HTML content extraction
+    "ebooklib>=0.18",               # EPUB parsing
+    "pypdf>=4.3.0",                 # Lightweight PDF text fallback
+    "python-docx>=1.1.0",           # DOCX fallback
+    "python-pptx>=0.6.23",          # PPTX fallback
+    "openpyxl>=3.1.2",              # XLSX fallback
+    "pillow>=10.3.0",               # Image I/O for OCR path
+    "pytesseract>=0.3.10",          # Tesseract OCR wrapper (needs tesseract binary)
+    "beautifulsoup4>=4.12.0",       # HTML fallback
+    "lxml>=5.0.0",                  # HTML/XML parsing speed
+    "striprtf>=0.0.27",             # RTF fallback when pandoc absent
+    "pyyaml>=6.0",                  # Front-matter serialization
+    "rich>=13.7.0",                 # Console progress + tables
+    "click>=8.1.0",                 # CLI framework (cross-platform)
+    "platformdirs>=4.2.0",          # Cross-platform Desktop/cache dir resolution
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6.0",
+]
+
+[project.scripts]
+convert-anything-md = "convert_anything_md.cli:main"
+cam = "convert_anything_md.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/nosliwhtes/convert-anything-to-markdown"
+Repository = "https://github.com/nosliwhtes/convert-anything-to-markdown"
+Issues = "https://github.com/nosliwhtes/convert-anything-to-markdown/issues"
+Changelog = "https://github.com/nosliwhtes/convert-anything-to-markdown/releases"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["convert_anything_md*"]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-ra -q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
