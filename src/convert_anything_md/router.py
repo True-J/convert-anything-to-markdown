@@ -57,6 +57,7 @@ from convert_anything_md.paths import (
     ensure_dir,
     safe_stem,
 )
+from convert_anything_md.extractors.vcf import VCFExtractor
 
 # ---------------------------------------------------------------------------
 # Extractor chains
@@ -88,6 +89,7 @@ _CHAINS: dict[FileKind, list[type[Extractor]]] = {
     FileKind.MARKDOWN: [MarkdownPassthroughExtractor],
     FileKind.PLAINTEXT: [PlainTextExtractor],
     FileKind.IMAGE: [ImageOcrExtractor],
+    FileKind.VCF: [VCFExtractor],
 }
 
 
