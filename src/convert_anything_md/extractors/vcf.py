@@ -1,15 +1,4 @@
-""" 
-    vCard (.vcf) -> Markdown extractor
-
-    Takes a vCard file and extracts contents to Markdown format.
-    
-    Example:
-        ## John Doe
-
-        - **Nickname:** Johnny
-        - **Email:** John@Doe.com
-        ...
-"""
+"""vCard (.vcf) -> Markdown extractor"""
 
 from convert_anything_md.extractors.base import (
     ExtractionResult,
@@ -25,7 +14,7 @@ class VCFExtractor:
 
     # standard vcard attributes, any additional will not have it's name changed
     vcard_attributes = {
-        # Identification Properties 
+        # Identification Properties
         # FN is given a special place in the md file
         "N": "Name",
         "NICKNAME": "Nickname",
@@ -108,7 +97,7 @@ class VCFExtractor:
         """Read `path` and return an `ExtractionResult`.
 
         Raises:
-            ExtractorUnavailable: backing tool isn't installed. 
+            ExtractorUnavailable: backing tool isn't installed.
             ExtractorError:       tool is installed but extraction failed.
         """
 
@@ -116,7 +105,10 @@ class VCFExtractor:
         try:
             import vobject
         except ImportError:
-            raise ExtractorUnavailable("vobject library is not installed. Please install it to use VCFExtractor.")
+            raise ExtractorUnavailable(
+                "vobject library is not installed. " \
+                "Please install it to use VCFExtractor."
+            )
         
         with open(path, "r", encoding="utf-8") as f:
             vcard_data = f.read()
