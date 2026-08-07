@@ -104,13 +104,13 @@ class VCFExtractor:
         # First check possible error conditions
         try:
             import vobject
-        except ImportError:
+        except ImportError as err:
             raise ExtractorUnavailable(
-                "vobject library is not installed. " \
+                "vobject library is not installed. "
                 "Please install it to use VCFExtractor."
-            )
-        
-        with open(path, "r", encoding="utf-8") as f:
+            ) from err
+
+        with open(path, encoding="utf-8") as f:
             vcard_data = f.read()
         if "VERSION" not in vcard_data:
             raise ExtractorError("Invalid vCard: missing VERSION field.")
@@ -118,28 +118,27 @@ class VCFExtractor:
             raise ExtractorError("Invalid vCard: missing FN (Full Name) field.")
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 vcard_data = f.read()
-        except Exception as e:
-            raise ExtractorError(f"Failed to read file {path}: {e}")
+        except Exception as err:
+            raise ExtractorError(f"Failed to read file {path}: {err}") from err
 
         try:
             vcard = vobject.readOne(vcard_data)
-        except Exception as e:
-            raise ExtractorError(f"Failed to parse vCard data: {e}")
+        except Exception as err:
+            raise ExtractorError(f"Failed to parse vCard data: {err}") from err
 
         version = getattr(vcard, "version", None)
-        
         full_name = getattr(vcard, "fn", None)
 
         sorted_markdown_lines = {}
         # First we load keys into dictionary to keep sorted structure
-        for field_name in self.vcard_attributes.keys():
+        for field_name in self.vcard_attributes:
             if field_name.lower() in vcard.contents:
                 sorted_markdown_lines[field_name.upper()] = self.vcard_attributes[field_name.upper()]
 
         # Next, any attributes not in the dictionary get added to the bottom
-        for field_name in vcard.contents.keys():
+        for field_name in vcard.contents:
             if field_name.upper() not in sorted_markdown_lines:
                 if field_name.upper() in ["FN", "VERSION"]:
                     continue  # Skip FN and VERSION as they are handled special
@@ -150,14 +149,13 @@ class VCFExtractor:
         markdown_lines.append(f"## {full_name.value}\n")
 
         for attr_name, field_name in sorted_markdown_lines.items():
-            # _list gets all instances of an item, allowing for multiple 
-            #   emails, addresses, etc.
+            # _list gets all instances of an item, allowing for multiple
+            # emails, addresses, etc.
             items = getattr(vcard, f"{attr_name.lower()}_list", None)
             lines_for_field = self._render_field(attr_name, field_name, items)
             markdown_lines.extend(lines_for_field)
 
         markdown_lines.append(f"\nvCard Version: {version.value}")
-        
         markdown = "\n".join(markdown_lines)
         wc = word_count(markdown)
 
