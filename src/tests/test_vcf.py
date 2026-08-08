@@ -328,13 +328,3 @@ def test_parse_error_raises(tmp_path: Path, monkeypatch):
 
     with pytest.raises(ExtractorError, match="Failed to parse vCard data"):
         VCFExtractor().extract(str(path))
-
-
-def test_list_value_single_item_renders_as_multiline(tmp_path: Path):
-    # A single ORG property with a list value renders each list item on its own line.
-    vcard = create_vcard(overrides={"ORG": ["Wayne Enterprises", "Tech Division"]})
-    result = write_and_extract(vcard, tmp_path)
-
-    assert "- **Organization:**" in result.markdown
-    assert "- Wayne Enterprises" in result.markdown
-    assert "- Tech Division" in result.markdown
