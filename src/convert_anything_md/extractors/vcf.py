@@ -1,11 +1,13 @@
-"""vCard (.vcf) -> Markdown extractor"""
+import vobject
 
 from convert_anything_md.extractors.base import (
     ExtractionResult,
     ExtractorError,
-    ExtractorUnavailable,
     word_count,
 )
+
+"""vCard (.vcf) -> Markdown extractor"""
+
 
 class VCFExtractor:
     """Extracts Markdown from vCard files (.vcf)."""
@@ -66,7 +68,7 @@ class VCFExtractor:
         "PROFILE": "vCard Profile",
         # Security Properties
         "CLASS": "Privacy Classification",
-        "KEY": "Public Encryption Key"
+        "KEY": "Public Encryption Key",
     }
 
     # Properties that have a defined structure
@@ -76,7 +78,7 @@ class VCFExtractor:
             ("Given", "given"),
             ("Additional", "additional"),
             ("Prefix", "prefix"),
-            ("Suffix", "suffix")
+            ("Suffix", "suffix"),
         ],
         "ADR": [
             ("PO Box", "po box"),
@@ -93,6 +95,9 @@ class VCFExtractor:
     #   Categories and other attributes which vobject returns a list for
     COMMA_SPLIT_FIELDS = {"NICKNAME"}
 
+
+
+
     def extract(self, path: str) -> ExtractionResult:
         """Read `path` and return an `ExtractionResult`.
 
@@ -102,18 +107,13 @@ class VCFExtractor:
         """
 
         # First check possible error conditions
-        try:
-            import vobject
-        except ImportError as err:
-            raise ExtractorUnavailable(
-                "vobject library is not installed. "
-                "Please install it to use VCFExtractor."
-            ) from err
 
         with open(path, encoding="utf-8") as f:
             vcard_data = f.read()
+
         if "VERSION" not in vcard_data:
             raise ExtractorError("Invalid vCard: missing VERSION field.")
+
         if "FN" not in vcard_data:
             raise ExtractorError("Invalid vCard: missing FN (Full Name) field.")
 
@@ -135,7 +135,9 @@ class VCFExtractor:
         # First we load keys into dictionary to keep sorted structure
         for field_name in self.vcard_attributes:
             if field_name.lower() in vcard.contents:
-                sorted_markdown_lines[field_name.upper()] = self.vcard_attributes[field_name.upper()]
+                sorted_markdown_lines[field_name.upper()] = self.vcard_attributes[
+                    field_name.upper()
+                ]
 
         # Next, any attributes not in the dictionary get added to the bottom
         for field_name in vcard.contents:
@@ -166,6 +168,10 @@ class VCFExtractor:
         )
 
     # --- Helper functions ---
+
+
+
+
     def _render_field(self, attr_name, field_name, items):
         """Render a single vCard property in md format"""
         # if there is only 1 of attr_name lines in the file
@@ -174,16 +180,18 @@ class VCFExtractor:
             type_param = getattr(item, "type_param", None)
             sub_lines = self._render_value_lines(attr_name, item)
 
-            if attr_name in self.STRUCTURED_FIELDS or len(sub_lines) > 1 or (len(sub_lines) == 1 and type_param):
+            if (
+                attr_name in self.STRUCTURED_FIELDS
+                or len(sub_lines) > 1
+                or (len(sub_lines) == 1 and type_param)
+            ):
                 header = [f"- **{field_name}:**"]
                 if type_param:
                     header.append(f"  - Type: {type_param}")
                 # sub_lines already start with "- " (from _render_value_lines),
                 # except for the plain single-value fallback case.
-                indented = [
-                    f"  {line}" if line.startswith("- ") else f"  - {line}"
-                    for line in sub_lines
-                ]
+                for ln in sub_lines:
+                    indented = [f"  {ln}"] if ln.startswith("- ") else [f"  - {ln}"]
                 return header + indented
             else:
                 value_text = sub_lines[0] if sub_lines else ""
@@ -202,9 +210,12 @@ class VCFExtractor:
                 lines.append(f"  - {value_text}")
         return lines
 
+
+
+
     def _render_value_lines(self, attr_name, item):
         """Return a list of text lines representing the value portion
-        of a single property instance (no field label, no TYPE). 
+        of a single property instance (no field label, no TYPE).
         For example: Address or names
         """
 
