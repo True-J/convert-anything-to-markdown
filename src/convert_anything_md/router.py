@@ -50,6 +50,7 @@ from convert_anything_md.extractors.text import (
     RtfPandocExtractor,
     RtfStripExtractor,
 )
+from convert_anything_md.extractors.vcf import VCFExtractor
 from convert_anything_md.frontmatter import build_frontmatter
 from convert_anything_md.paths import (
     conflict_safe_name,
@@ -57,7 +58,6 @@ from convert_anything_md.paths import (
     ensure_dir,
     safe_stem,
 )
-from convert_anything_md.extractors.vcf import VCFExtractor
 
 # ---------------------------------------------------------------------------
 # Extractor chains
@@ -283,7 +283,8 @@ def _run_chain(
     path: Path,
     extractor_classes: list[type[Extractor]],
 ) -> tuple[ExtractionResult | None, list[str], list[str]]:
-    """Walk the extractor chain until one succeeds. Returns (result, warnings, attempted)."""
+    """Walk the extractor chain until one succeeds.
+    Returns (result, warnings, attempted)."""
     warnings: list[str] = []
     attempted: list[str] = []
 
