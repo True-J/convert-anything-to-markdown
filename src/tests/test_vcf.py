@@ -1,4 +1,6 @@
-﻿import builtins
+﻿"""Tests for the VCFExtractor class."""
+
+import builtins
 import sys
 from pathlib import Path
 
@@ -8,25 +10,14 @@ import vobject
 from convert_anything_md.extractors.base import ExtractorError
 from convert_anything_md.extractors.vcf import VCFExtractor
 
-"""Tests for the VCFExtractor class."""
-
-
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 
-
-
-
-
 def create_vcard(overrides=None) -> vobject.vCard:
     """Create a baseline vCard and apply optional attribute overrides."""
     overrides = dict(overrides or {})
-
-
-
 
     def set_property(name, value):
         normalized = name.upper()
@@ -52,11 +43,9 @@ def create_vcard(overrides=None) -> vobject.vCard:
                     prop.value = item
             return
 
-        if (
-            isinstance(value, tuple)
-            and len(value) == 2
-            and isinstance(value[0], str)
-        ):
+        if (isinstance(value, tuple) and
+            len(value) == 2 and
+            isinstance(value[0], str)):
             prop = vcard.add(normalized.lower())
             prop.value = value[1]
             prop.type_param = value[0]
@@ -83,8 +72,10 @@ def create_vcard(overrides=None) -> vobject.vCard:
         ),
     )
     set_property("NICKNAME", overrides.pop("NICKNAME", "Batman, The Dark Knight"))
-    set_property("PHOTO", overrides.pop("PHOTO", ("URI",
-        "https://justiceleague.org")))
+    set_property(
+        "PHOTO",
+        overrides.pop("PHOTO", ("URI", "https://justiceleague.org"))
+    )
     set_property("BDAY", overrides.pop("BDAY", "1939-03-30"))
     set_property("ANNIVERSARY", overrides.pop("ANNIVERSARY", "1940-04-25"))
     set_property("GENDER", overrides.pop("GENDER", "M"))
@@ -114,35 +105,56 @@ def create_vcard(overrides=None) -> vobject.vCard:
     set_property("TITLE", overrides.pop("TITLE", "CEO"))
     set_property("ROLE", overrides.pop("ROLE", "Chairman"))
     set_property("MEMBER", overrides.pop("MEMBER", "uuid:league-id-007"))
-    set_property("RELATED", overrides.pop("RELATED", [("co-worker",
-        "uuid:alfred-id-101")]))
+    set_property(
+        "RELATED",
+        overrides.pop("RELATED", [("co-worker", "uuid:alfred-id-101")])
+    )
     set_property("ORG", overrides.pop("ORG", ["Wayne Enterprises", "Tech Division"]))
-    set_property("LOGO", overrides.pop("LOGO", ("URI",
-        "https://wayneenterprises.com")))
+    set_property(
+        "LOGO",
+        overrides.pop("LOGO", ("URI", "https://wayneenterprises.com"))
+    )
     set_property("CATEGORIES", overrides.pop("CATEGORIES", ["Billionaire", "Hero"]))
-    set_property("NOTE", overrides.pop("NOTE",
-        "High-profile billionaire tech investor."))
-    set_property("SOUND", overrides.pop("SOUND", ("URI",
-        "https://wayneenterprises.com")))
+    set_property(
+        "NOTE",
+        overrides.pop("NOTE", "High-profile billionaire tech investor.")
+    )
+    set_property(
+        "SOUND",
+        overrides.pop("SOUND", ("URI", "https://wayneenterprises.com"))
+    )
     set_property("SOCIALPROFILE", overrides.pop("SOCIALPROFILE", "https://x.com"))
     set_property("URL", overrides.pop("URL", "https://wayneenterprises.com"))
-    set_property("CALADRURI", overrides.pop("CALADRURI",
-        "mailto:bruce@waynecorp.com"))
+    set_property(
+        "CALADRURI",
+        overrides.pop("CALADRURI", "mailto:bruce@waynecorp.com")
+    )
     set_property("CALURI", overrides.pop("CALURI", "webcal://://waynecorp.com"))
     set_property("FBURL", overrides.pop("FBURL", "https://waynecorp.com"))
     set_property("SOURCE", overrides.pop("SOURCE", "ldap://://waynecorp.com"))
     set_property("KIND", overrides.pop("KIND", "individual"))
-    set_property("XML", overrides.pop("XML",
-        "<customData xmlns='http://example.com'>Batman</customData>"))
-    set_property("PRODID", overrides.pop("PRODID",
-        "-//Custom Enterprise Generator V1.0//EN"))
+    set_property(
+        "XML",
+        overrides.pop(
+            "XML",
+            "<customData xmlns='http://example.com'>Batman</customData>"
+        )
+    )
+    set_property(
+        "PRODID",
+        overrides.pop("PRODID", "-//Custom Enterprise Generator V1.0//EN")
+    )
     set_property("REV", overrides.pop("REV", "2026-08-06T21:24:00Z"))
-    set_property("UID", overrides.pop("UID",
-        "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6"))
+    set_property(
+        "UID",
+        overrides.pop("UID", "urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6")
+    )
     set_property(
         "CLIENTPIDMAP",
-        overrides.pop("CLIENTPIDMAP",
-            "1;urn:uuid:53e374d9-317a-48da-a156-cb31a1ec329e"),
+        overrides.pop(
+            "CLIENTPIDMAP",
+            "1;urn:uuid:53e374d9-317a-48da-a156-cb31a1ec329e"
+        ),
     )
     set_property("KEY", overrides.pop("KEY", ("URI", "https://waynecorp.com")))
 
@@ -152,16 +164,10 @@ def create_vcard(overrides=None) -> vobject.vCard:
     return vcard
 
 
-
-
-
 def write_and_extract(vcard: vobject.vCard, tmp_path: Path):
     path = tmp_path / "test.vcf"
     path.write_text(vcard.serialize(), encoding="utf-8")
     return VCFExtractor().extract(str(path))
-
-
-
 
 
 def write_text_and_extract(vcard_text: str, tmp_path: Path):
@@ -170,17 +176,11 @@ def write_text_and_extract(vcard_text: str, tmp_path: Path):
     return VCFExtractor().extract(str(path))
 
 
-
-
-
 def test_valid_vcf_extraction(tmp_path: Path):
     result = write_and_extract(create_vcard(), tmp_path)
 
     assert result.markdown.startswith("## Bruce Wayne")
     assert "vCard Version: 4.0" in result.markdown
-
-
-
 
 
 def test_vcf_accepts_non_default_version_3p0(tmp_path: Path):
@@ -193,8 +193,6 @@ def test_vcf_accepts_non_default_version_3p0(tmp_path: Path):
     assert "vCard Version: 3.0" in result.markdown
 
 
-
-
 def test_vcf_accepts_non_default_version_2p1(tmp_path: Path):
     result = write_and_extract(
         create_vcard(overrides={"VERSION": "2.1", "FN": "Clark Kent"}),
@@ -203,8 +201,6 @@ def test_vcf_accepts_non_default_version_2p1(tmp_path: Path):
 
     assert result.markdown.startswith("## Clark Kent")
     assert "vCard Version: 2.1" in result.markdown
-
-
 
 
 def test_vcf_accepts_non_default_version_5p0(tmp_path: Path):
@@ -218,8 +214,6 @@ def test_vcf_accepts_non_default_version_5p0(tmp_path: Path):
     assert "vCard Version: 5.0" in result.markdown
 
 
-
-
 def test_vcf_renders_custom_attribute(tmp_path: Path):
     # This test shows that any custom value works and will show up in the md file
     result = write_and_extract(
@@ -228,6 +222,7 @@ def test_vcf_renders_custom_attribute(tmp_path: Path):
     )
 
     assert "**X-CUSTOM:** made up value" in result.markdown
+
 
 def test_vcf_renders_multiple_attribute_with_types(tmp_path: Path):
     # Shows that multiple instances of any attribute works
@@ -260,26 +255,19 @@ def test_vcf_renders_multiple_attribute_with_types(tmp_path: Path):
     assert "METROPOLIS: 37.1511N -88.7319W" in result.markdown
 
 
-
-
 def test_vcf_renders_multiple_attribute_without_types(tmp_path: Path):
     # Shows that multiple instances of any attribute works
     result = write_and_extract(
         create_vcard(
-            overrides={
-                "EMAIL": [
-                    ("WORK:", "bruce@waynecorp.com"),
-                    ("batcave@wayne.com")
-                ]
-            }
+            overrides={"EMAIL": [
+                ("WORK:", "bruce@waynecorp.com"),
+                ("batcave@wayne.com")
+            ]}
         ),
         tmp_path,
     )
     assert "WORK:" in result.markdown
     assert "  - batcave@wayne.com" in result.markdown
-
-
-
 
 
 def test_missing_version_raises(tmp_path: Path):
@@ -293,9 +281,6 @@ def test_missing_version_raises(tmp_path: Path):
         write_text_and_extract(text_without_version + "\n", tmp_path)
 
 
-
-
-
 def test_missing_fn_raises(tmp_path: Path):
     # Full Name is required and vcard is not valid if it is missing
     vcard_text = create_vcard().serialize()
@@ -307,9 +292,6 @@ def test_missing_fn_raises(tmp_path: Path):
         write_text_and_extract(text_without_fn + "\n", tmp_path)
 
 
-
-
-
 def test_read_error_raises(tmp_path: Path, monkeypatch):
     # Simulate a file read failure after the initial content checks.
     vcard_text = create_vcard().serialize()
@@ -319,25 +301,23 @@ def test_read_error_raises(tmp_path: Path, monkeypatch):
     original_open = builtins.open
     call_counts = {"count": 0}
 
-
-
-
     def fake_open(file, mode="r", encoding=None, *args, **kwargs):
         if file == str(path) and mode == "r":
             call_counts["count"] += 1
             if call_counts["count"] == 2:
                 raise OSError("filesystem broken")
         return original_open(
-            file, mode, *args, **kwargs, encoding=encoding
+            file,
+            mode,
+            *args,
+            **kwargs,
+            encoding=encoding
         )  # noqa: B026
 
     monkeypatch.setattr(builtins, "open", fake_open)
 
     with pytest.raises(ExtractorError, match="Failed to read file"):
         VCFExtractor().extract(str(path))
-
-
-
 
 
 def test_parse_error_raises(tmp_path: Path, monkeypatch):
@@ -348,8 +328,6 @@ def test_parse_error_raises(tmp_path: Path, monkeypatch):
 
     with pytest.raises(ExtractorError, match="Failed to parse vCard data"):
         VCFExtractor().extract(str(path))
-
-
 
 
 def test_list_value_single_item_renders_as_multiline(tmp_path: Path):
