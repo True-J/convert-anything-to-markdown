@@ -1,4 +1,10 @@
-import vobject
+try:
+    import vobject
+except ImportError:
+    raise ImportError(
+        "The vobject library is required for VCF extraction." \
+        "Please install it with 'pip install vobject'."
+    )
 
 from convert_anything_md.extractors.base import (
     ExtractionResult,
