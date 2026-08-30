@@ -20,7 +20,7 @@ from convert_anything_md.extractors.base import (
 
 
 class DoclingExtractor:
-    """Docling-backed extractor. Works for PDF, DOCX, PPTX, XLSX, HTML."""
+    """Docling-backed extractor. Works on PDF, DOCX, PPTX, and XLSX."""
 
     name = "docling"
 

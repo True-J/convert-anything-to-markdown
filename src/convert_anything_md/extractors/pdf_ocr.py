@@ -39,7 +39,7 @@ class PdfOcrExtractor:
 
     def extract(self, path: Path) -> ExtractionResult:
         try:
-            import fitz  # pymupdf
+            import pymupdf  # pymupdf
         except ImportError as exc:
             raise ExtractorUnavailable(
                 "pymupdf is not installed (pip install pymupdf)"
@@ -66,17 +66,18 @@ class PdfOcrExtractor:
         zoom = self.dpi / 72.0  # PyMuPDF default DPI is 72.
 
         try:
-            doc = fitz.open(str(path))
+            doc = pymupdf.open(str(path))
         except Exception as exc:  # noqa: BLE001
             raise ExtractorError(f"could not open {path.name}: {exc}") from exc
 
         page_count = 0
         page_markdowns: list[str] = []
         warnings: list[str] = []
+        has_real_text = False
 
         try:
             page_count = doc.page_count
-            matrix = fitz.Matrix(zoom, zoom)
+            matrix = pymupdf.Matrix(zoom, zoom)
             for idx in range(page_count):
                 try:
                     page = doc.load_page(idx)
@@ -91,11 +92,18 @@ class PdfOcrExtractor:
 
                 text = text.strip()
                 if text:
+                    has_real_text = True
                     page_markdowns.append(f"## Page {idx + 1}\n\n{text}")
+                else:
+                    if any(f"page {idx + 1}" in w for w in warnings):
+                        msg = "_(OCR failed — see warnings)_"
+                    else:
+                        msg = "_(No text detected on this page)_"
+                    page_markdowns.append(f"## Page {idx + 1}\n\n{msg}")
         finally:
             doc.close()
 
-        if not page_markdowns:
+        if not has_real_text:
             raise ExtractorError(
                 f"OCR produced no text for {path.name} — the PDF may be "
                 "encrypted or contain only blank/diagram pages."

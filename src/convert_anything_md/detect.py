@@ -209,12 +209,12 @@ def is_scanned_pdf(
     extraction path and let that fail visibly).
     """
     try:
-        import fitz  # pymupdf
+        import pymupdf  # pymupdf
     except ImportError:
         return False
 
     try:
-        doc = fitz.open(str(path))
+        doc = pymupdf.open(str(path))
     except Exception:  # noqa: BLE001 - any open failure → let caller handle
         return False
 

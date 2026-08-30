@@ -30,7 +30,7 @@ convert-anything-to-markdown/
 ├── src/                          # Python package
 │   ├── pyproject.toml            # Package metadata + dependencies
 │   ├── convert_anything_md/
-│   │   ├── cli.py                 # CLI entry point (click)
+│   │   ├── cli.py                 # CLI entry point (argparse)
 │   │   ├── router.py              # Format detection + fallback chains
 │   │   ├── detect.py             # File type detection (extension + magic bytes)
 │   │   ├── frontmatter.py         # YAML provenance header

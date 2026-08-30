@@ -18,9 +18,10 @@ Limitations (why it's not the ONLY engine):
   - No plain-text/markdown passthrough
   - Scanned PDFs error as "unsupported" (caught and falls back gracefully)
 
-The `anydoc` binary is installed via `npm install -g @firecrawl/anydoc`
-or invoked ad-hoc via `npx @firecrawl/anydoc`. We check PATH first, then
-fall back to npx with a download warning.
+The `anydoc` binary must be on your PATH (installed via
+`npm install -g @firecrawl/anydoc`). If it is missing the extractor
+raises `ExtractorUnavailable` and the router falls back to the next
+engine, so anydoc is a quality enhancer, not a hard dependency.
 """
 
 from __future__ import annotations

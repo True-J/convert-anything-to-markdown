@@ -25,7 +25,7 @@ source: /path/to/user/Downloads/quarterly-report.pdf
 source_name: quarterly-report.pdf
 source_sha256: a1b2c3d4e5f6...
 converted_at: 2026-04-14T10:23:45-06:00
-converter: convert-anything-md@1.0.0
+converter: convert-anything-md@1.5.0
 engine: docling
 fallback_chain: [docling]
 pages: 42
@@ -40,7 +40,7 @@ warnings: []
 ## CLI table (interactive mode)
 
 ```
-convert-anything-md v1.0.0
+convert-anything-md v1.5.0
 
 Source                      Kind      Engine    Pages  Words   Time   Output
 quarterly-report.pdf        pdf_text  docling   42     9,847   3.2s   ~/Desktop/quarterly-report.md

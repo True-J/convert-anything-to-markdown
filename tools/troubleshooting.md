@@ -114,5 +114,5 @@ convert-anything-md -v --dry-run <the problematic file>
 ```
 
 That's usually enough to diagnose. File issues at
-https://github.com/seth-wilson/convert-anything-to-markdown/issues.
+https://github.com/nosliwhtes/convert-anything-to-markdown/issues.
 

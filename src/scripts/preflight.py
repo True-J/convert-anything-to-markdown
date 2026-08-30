@@ -42,7 +42,7 @@ def main() -> int:
 
     # Python packages
     for pkg, friendly in [
-        ("fitz", "pymupdf"),
+        ("pymupdf", "pymupdf"),
         ("docling", "docling"),
         ("markitdown", "markitdown"),
         ("trafilatura", "trafilatura"),

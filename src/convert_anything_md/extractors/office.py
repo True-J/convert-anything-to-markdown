@@ -21,6 +21,32 @@ from convert_anything_md.extractors.base import (
 )
 
 
+def _paragraph_style(para_el) -> str:  # pragma: no cover - retained for API stability
+    """Return the lowercase docx style name for a raw ``<w:p>`` element.
+
+    Reads the ``w:pStyle`` value from ``<w:pPr>``. Returns "" when no style
+    is present. ``para_el`` is a ``lxml`` Element (see ``lxml.etree`` docs).
+
+    The DOCX extractor now reads block elements through python-docx's
+    ``Paragraph``/``Table`` wrappers instead of walking the raw XML, so
+    this helper is unused internally but kept for callers that already
+    pass lxml elements.
+    """
+    ppr = para_el.find(
+        ".//{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pPr"
+    )
+    style_id = None
+    if ppr is not None:
+        ps = ppr.find(
+            "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pStyle"
+        )
+        if ps is not None:
+            style_id = ps.get(
+                "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val"
+            )
+    return (style_id or "").lower()
+
+
 class DocxExtractor:
     """DOCX → Markdown via python-docx. Preserves paragraphs + tables + headings."""
 
@@ -29,7 +55,8 @@ class DocxExtractor:
     def extract(self, path: Path) -> ExtractionResult:
         try:
             from docx import Document  # python-docx
-            from docx.document import Document as _DocumentType  # noqa: F401
+            from docx.table import Table as _DocTable
+            from docx.text.paragraph import Paragraph as _DocParagraph
         except ImportError as exc:
             raise ExtractorUnavailable("python-docx is not installed") from exc
 
@@ -40,29 +67,35 @@ class DocxExtractor:
             raise ExtractorError(f"python-docx failed on {path.name}: {exc}") from exc
 
         parts: list[str] = []
-        for para in doc.paragraphs:
-            text = para.text.strip()
-            if not text:
-                continue
-            style = (para.style.name or "").lower() if para.style else ""
-            if style.startswith("heading"):
-                # "Heading 1" → "# …", "Heading 2" → "## …", etc.
-                try:
-                    level = int(style.split()[-1])
-                except ValueError:
-                    level = 2
-                level = max(1, min(6, level))
-                parts.append(f"{'#' * level} {text}")
-            else:
-                parts.append(text)
+        # Walk block elements in document order. python-docx wraps each
+        # raw <w:p> / <w:tbl> as a Paragraph / Table, so .text reads the
+        # content correctly regardless of how many runs or text nodes it
+        # spans — no reliance on itertext().
+        try:
+            blocks = list(doc._body.iter_inner_content())
+        except AttributeError:
+            blocks = list(doc.body.iter_children()) if hasattr(doc.body, "iter_children") else []
 
-        for table in doc.tables:
-            rows = [
-                [cell.text.strip().replace("\n", " ") for cell in row.cells]
-                for row in table.rows
-            ]
-            if rows:
-                parts.append(_render_markdown_table(rows))
+        for block in blocks:
+            if isinstance(block, _DocParagraph):
+                text = block.text.strip()
+                if not text:
+                    continue
+                style = (block.style.name or "").lower() if block.style else ""
+                if style.startswith("heading"):
+                    # "Heading 1" → "# …", "Heading 2" → "## …", etc.
+                    try:
+                        level = int(style.split()[-1])
+                    except ValueError:
+                        level = 2
+                    level = max(1, min(6, level))
+                    parts.append(f"{'#' * level} {text}")
+                else:
+                    parts.append(text)
+            elif isinstance(block, _DocTable):
+                row_lists = [[cell.text.strip() for cell in row.cells] for row in block.rows]
+                if row_lists:
+                    parts.append(_render_markdown_table(row_lists))
 
         markdown = "\n\n".join(parts).strip() + "\n"
         duration_ms = int((time.perf_counter() - start) * 1000)
@@ -184,13 +217,15 @@ class CsvExtractor:
         except OSError as exc:
             raise ExtractorError(f"cannot read {path.name}: {exc}") from exc
 
-        # Use csv.Sniffer to pick up odd delimiters in .csv files.
+        # Heuristically pick a delimiter for comma-CSVs that use a
+        # non-standard separator. csv.Sniffer() is unreliable on tiny or
+        # single-column samples — it happily picks "l" out of a lone
+        # "hello" — so only honor a sniffed delimiter when it recurs
+        # consistently across several non-empty records and yields a
+        # stable, multi-column field count. Single-column data keeps the
+        # comma.
         if delimiter == "," and text:
-            try:
-                dialect = csv.Sniffer().sniff(text[:4096])
-                delimiter = dialect.delimiter
-            except csv.Error:
-                pass
+            delimiter = _guess_delimiter(text)
 
         reader = csv.reader(StringIO(text), delimiter=delimiter)
         rows = [
@@ -214,6 +249,28 @@ class CsvExtractor:
             extra={"rows": len(rows), "delimiter": delimiter},
         )
 
+
+
+def _guess_delimiter(text: str) -> str:
+    """Pick a delimiter for a comma-delimited CSV that uses something else.
+
+    Only trusts a sniffed delimiter when it recurs consistently across
+    several non-empty records *and* every record splits into the same
+    multi-column field count. This keeps single-column data (and tiny
+    samples like a lone "hello") on the comma instead of having
+    ``csv.Sniffer`` invent a bogus separator.
+    """
+    sample_lines = [ln for ln in text.splitlines() if ln.strip()]
+    if len(sample_lines) < 2:
+        return ","
+
+    candidates = [";", "\t", "|"]
+    for cand in candidates:
+        counts = {ln.count(cand) for ln in sample_lines}
+        if counts and min(counts) > 0 and len(counts) == 1:
+            return cand
+
+    return ","
 
 def _render_markdown_table(rows: list[list[str]]) -> str:
     """Render a 2-D list as a GitHub-flavored Markdown table."""

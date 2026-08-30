@@ -45,7 +45,7 @@ Six Markdown files land on the desktop:
 ## Sample interactive table
 
 ```
-convert-anything-md v1.0.0
+convert-anything-md v1.5.0
 
 Source          Kind       Engine                   Pages  Words   Time   Output
 kickoff.docx    docx       docling                    —    1,204   0.8s   ~/Desktop/kickoff.md

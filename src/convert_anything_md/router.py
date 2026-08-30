@@ -289,7 +289,18 @@ def _run_chain(
         extractor = cls()
         attempted.append(extractor.name)
         try:
-            return extractor.extract(path), warnings, attempted
+            result = extractor.extract(path)
+            # A successful extraction that yields *no* output is useless — an
+            # empty .md gives the user nothing and hides the real reason. Treat
+            # it like a failure and let the chain fall back to the next engine
+            # (e.g. `anydoc` can "convert" a valid but empty document to an
+            # empty body; `markdown-passthrough` on a blank file).
+            if not result.markdown.strip():
+                warnings.append(
+                    f"{extractor.name} returned empty output; trying next extractor"
+                )
+                continue
+            return result, warnings, attempted
         except ExtractorUnavailable as exc:
             warnings.append(f"{extractor.name} unavailable: {exc}")
         except ExtractorError as exc:

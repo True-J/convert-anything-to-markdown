@@ -51,7 +51,6 @@ dependencies = [
     "docling>=1.16.0",              # Best-in-class PDF / Office extraction
     "trafilatura>=1.12.0",          # HTML content extraction
     "ebooklib>=0.18",               # EPUB parsing
-    "pypdf>=4.3.0",                 # Lightweight PDF text fallback
     "python-docx>=1.1.0",           # DOCX fallback
     "python-pptx>=0.6.23",          # PPTX fallback
     "openpyxl>=3.1.2",              # XLSX fallback
@@ -62,8 +61,6 @@ dependencies = [
     "striprtf>=0.0.27",             # RTF fallback when pandoc absent
     "pyyaml>=6.0",                  # Front-matter serialization
     "rich>=13.7.0",                 # Console progress + tables
-    "click>=8.1.0",                 # CLI framework (cross-platform)
-    "platformdirs>=4.2.0",          # Cross-platform Desktop/cache dir resolution
 ]
 
 [project.optional-dependencies]
