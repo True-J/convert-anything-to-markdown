@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "convert-anything-md"
-version = "1.5.0"
+version = "1.5.1"
 description = "Convert PDFs, Office files, OpenDocument files, images, and web pages to clean Markdown. Chooses the best extractor per format. Runs offline with no API keys."
 readme = "README.md"
 license = "MIT"
