@@ -120,10 +120,26 @@ class VCFExtractor:
             raise ExtractorError(f"Failed to read file {path}: {err}") from err
 
         try:
-            vcard = vobject.readOne(vcard_data)
+            components = list(vobject.readComponents(vcard_data))
         except Exception as err:
             raise ExtractorError(f"Failed to parse vCard data: {err}") from err
 
+        if not components:
+            raise ExtractorError("Invalid vCard: no vCard found in file.")
+
+        markdown = "\n\n".join(self._render_vcard(c) for c in components)
+        wc = word_count(markdown)
+
+        return ExtractionResult(
+            markdown=markdown,
+            engine=self.name,
+            word_count=wc,
+        )
+
+    # --- Helper functions ---
+
+    def _render_vcard(self, vcard) -> str:
+        """Render a single parsed vCard as Markdown."""
         version = getattr(vcard, "version", None)
         full_name = getattr(vcard, "fn", None)
 
@@ -160,16 +176,7 @@ class VCFExtractor:
             markdown_lines.extend(lines_for_field)
 
         markdown_lines.append(f"\nvCard Version: {version.value}")
-        markdown = "\n".join(markdown_lines)
-        wc = word_count(markdown)
-
-        return ExtractionResult(
-            markdown=markdown,
-            engine=self.name,
-            word_count=wc,
-        )
-
-    # --- Helper functions ---
+        return "\n".join(markdown_lines)
 
 
 
@@ -235,7 +242,16 @@ class VCFExtractor:
             return lines if lines else [""]
 
         if isinstance(value, list):
-            return [f"- {v}" for v in value]
+            # vCard 2.1 nests ORG/CATEGORIES-like values as a list of lists;
+            # flatten one level and strip so we render text, not a Python repr.
+            flat: list[str] = []
+            for v in value:
+                if isinstance(v, list):
+                    flat.extend(str(x).strip() for x in v)
+                else:
+                    flat.append(str(v).strip())
+            flat = [s for s in flat if s]
+            return [f"- {v}" for v in flat] if flat else [""]
 
         if attr_name in self.COMMA_SPLIT_FIELDS and isinstance(value, str):
             parts = [p.strip() for p in value.split(",") if p.strip()]

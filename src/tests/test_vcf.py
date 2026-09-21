@@ -329,4 +329,33 @@ def test_parse_error_raises(tmp_path: Path, monkeypatch):
     path.write_text(bad_text, encoding="utf-8")
 
     with pytest.raises(ExtractorError, match="Failed to parse vCard data"):
-        VCFExtractor().extract(str(path))
+        VCFExtractor().extract(path)
+
+
+def test_vcf_renders_multiple_contacts(tmp_path: Path):
+    # Regression: readOne() silently kept only the first vCard in a
+    # multi-contact file; readComponents() must render all of them.
+    text = (
+        "BEGIN:VCARD\r\nVERSION:4.0\r\nFN:Alice\r\nN:Smith;Alice;;;\r\nEND:VCARD\r\n"
+        "BEGIN:VCARD\r\nVERSION:4.0\r\nFN:Bob\r\nN:Jones;Bob;;;\r\nEND:VCARD\r\n"
+    )
+    result = write_text_and_extract(text, tmp_path)
+
+    assert "## Alice" in result.markdown
+    assert "## Bob" in result.markdown
+
+
+def test_vcf_renders_v21_nested_org(tmp_path: Path):
+    # Regression: vCard 2.1 nests ORG as a list of lists, which used to
+    # render as a Python repr (['Acme Widgets', ' Inc.']).
+    text = (
+        "BEGIN:VCARD\r\nVERSION:2.1\r\nN:Doe;John;;Mr.;\r\nFN:Mr. John Doe\r\n"
+        "ORG:Acme Widgets, Inc.\r\nEND:VCARD\r\n"
+    )
+    result = write_text_and_extract(text, tmp_path)
+
+    assert "Acme Widgets" in result.markdown
+    assert "Inc." in result.markdown
+    assert "['" not in result.markdown
+    assert "  Inc." not in result.markdown  # stray leading space gone
+
