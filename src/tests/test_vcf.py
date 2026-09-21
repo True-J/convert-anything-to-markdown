@@ -1,6 +1,5 @@
 ﻿"""Tests for the VCFExtractor class."""
 
-import builtins
 import sys
 from pathlib import Path
 
@@ -183,6 +182,21 @@ def test_valid_vcf_extraction(tmp_path: Path):
     assert "vCard Version: 4.0" in result.markdown
 
 
+def test_vcf_renders_structured_name_all_subfields(tmp_path: Path):
+    # Regression: _render_field used to reassign (not append) the indented
+    # list inside the loop, dropping all but the last structured sub-field.
+    result = write_and_extract(create_vcard(), tmp_path)
+
+    for expected in (
+        "- Family: Wayne",
+        "- Given: Bruce",
+        "- Additional: Thomas",
+        "- Prefix: Mr.",
+        "- Suffix: Esq.",
+    ):
+        assert expected in result.markdown
+
+
 def test_vcf_accepts_non_default_version_3p0(tmp_path: Path):
     result = write_and_extract(
         create_vcard(overrides={"VERSION": "3.0", "FN": "Clark Kent"}),
@@ -293,31 +307,19 @@ def test_missing_fn_raises(tmp_path: Path):
 
 
 def test_read_error_raises(tmp_path: Path, monkeypatch):
-    # Simulate a file read failure after the initial content checks.
+    # Simulate a file read failure. The extractor performs a single
+    # Path.read_text(), so patch that method to raise.
     vcard_text = create_vcard().serialize()
     path = tmp_path / "test.vcf"
     path.write_text(vcard_text, encoding="utf-8")
 
-    original_open = builtins.open
-    call_counts = {"count": 0}
+    def fake_read_text(*args, **kwargs):
+        raise OSError("filesystem broken")
 
-    def fake_open(file, mode="r", encoding=None, *args, **kwargs):
-        if file == str(path) and mode == "r":
-            call_counts["count"] += 1
-            if call_counts["count"] == 2:
-                raise OSError("filesystem broken")
-        return original_open(
-            file,
-            mode,
-            *args,
-            **kwargs,
-            encoding=encoding
-        )  # noqa: B026
-
-    monkeypatch.setattr(builtins, "open", fake_open)
+    monkeypatch.setattr(Path, "read_text", fake_read_text)
 
     with pytest.raises(ExtractorError, match="Failed to read file"):
-        VCFExtractor().extract(str(path))
+        VCFExtractor().extract(path)
 
 
 def test_parse_error_raises(tmp_path: Path, monkeypatch):

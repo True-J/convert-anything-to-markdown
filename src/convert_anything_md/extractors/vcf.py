@@ -1,14 +1,9 @@
-try:
-    import vobject
-except ImportError:
-    raise ImportError(
-        "The vobject library is required for VCF extraction. "
-        "Please install it with 'pip install vobject'."
-    ) from None
+from pathlib import Path
 
 from convert_anything_md.extractors.base import (
     ExtractionResult,
     ExtractorError,
+    ExtractorUnavailable,
     word_count,
 )
 
@@ -104,29 +99,24 @@ class VCFExtractor:
 
 
 
-    def extract(self, path: str) -> ExtractionResult:
+    def extract(self, path: Path) -> ExtractionResult:
         """Read `path` and return an `ExtractionResult`.
 
         Raises:
             ExtractorUnavailable: backing tool isn't installed.
             ExtractorError:       tool is installed but extraction failed.
         """
-
-        # First check possible error conditions
-
-        with open(path, encoding="utf-8") as f:
-            vcard_data = f.read()
-
-        if "VERSION" not in vcard_data:
-            raise ExtractorError("Invalid vCard: missing VERSION field.")
-
-        if "FN" not in vcard_data:
-            raise ExtractorError("Invalid vCard: missing FN (Full Name) field.")
+        try:
+            import vobject
+        except ImportError as exc:
+            raise ExtractorUnavailable(
+                "The vobject library is required for VCF extraction. "
+                "Please install it with 'pip install vobject'."
+            ) from exc
 
         try:
-            with open(path, encoding="utf-8") as f:
-                vcard_data = f.read()
-        except Exception as err:
+            vcard_data = Path(path).read_text(encoding="utf-8", errors="replace")
+        except OSError as err:
             raise ExtractorError(f"Failed to read file {path}: {err}") from err
 
         try:
@@ -136,6 +126,12 @@ class VCFExtractor:
 
         version = getattr(vcard, "version", None)
         full_name = getattr(vcard, "fn", None)
+
+        if version is None or not version.value:
+            raise ExtractorError("Invalid vCard: missing VERSION field.")
+
+        if full_name is None or not full_name.value:
+            raise ExtractorError("Invalid vCard: missing FN (Full Name) field.")
 
         sorted_markdown_lines = {}
         # First we load keys into dictionary to keep sorted structure
@@ -196,11 +192,14 @@ class VCFExtractor:
                     header.append(f"  - Type: {type_param}")
                 # sub_lines already start with "- " (from _render_value_lines),
                 # except for the plain single-value fallback case.
+                indented = []
                 for ln in sub_lines:
-                    indented = [f"  {ln}"] if ln.startswith("- ") else [f"  - {ln}"]
+                    indented.append(f"  {ln}" if ln.startswith("- ") else f"  - {ln}")
                 return header + indented
             else:
                 value_text = sub_lines[0] if sub_lines else ""
+                if value_text.startswith("- "):
+                    value_text = value_text[2:]
                 return [f"- **{field_name}:** {value_text}"]
 
         # Multiple instances of the same property (e.g. two TEL lines).
