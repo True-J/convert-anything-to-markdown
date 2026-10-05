@@ -359,3 +359,40 @@ def test_vcf_renders_v21_nested_org(tmp_path: Path):
     assert "['" not in result.markdown
     assert "  Inc." not in result.markdown  # stray leading space gone
 
+
+
+def test_vcf_renders_all_address_subfields(tmp_path: Path):
+    # Regression: PO Box, Apt/Suite and Region/State were looked up under the
+    # wrong vobject attribute names and silently dropped.
+    text = (
+        "BEGIN:VCARD\r\nVERSION:3.0\r\nFN:Bruce Wayne\r\n"
+        "ADR;TYPE=HOME:PO 42;Suite 7;1007 Mountain Dr;Gotham;NJ;07001;USA\r\n"
+        "END:VCARD\r\n"
+    )
+    result = write_text_and_extract(text, tmp_path)
+
+    for expected in (
+        "PO Box: PO 42",
+        "Apt/Suite: Suite 7",
+        "Street: 1007 Mountain Dr",
+        "City: Gotham",
+        "Region/State: NJ",
+        "Postal Code: 07001",
+        "Country: USA",
+    ):
+        assert expected in result.markdown
+
+
+def test_vcf_decodes_raw_v21_quoted_printable(tmp_path: Path):
+    # Raw vCard 2.1 file using QUOTED-PRINTABLE with a soft line break.
+    text = (
+        "BEGIN:VCARD\r\nVERSION:2.1\r\nN:Doe;John;;;\r\nFN:John Doe\r\n"
+        "NOTE;ENCODING=QUOTED-PRINTABLE;CHARSET=UTF-8:Caf=C3=A9 meeting =\r\n"
+        "on Monday\r\nEND:VCARD\r\n"
+    )
+    result = write_text_and_extract(text, tmp_path)
+
+    assert "## John Doe" in result.markdown
+    assert "Caf\u00e9 meeting on Monday" in result.markdown
+    assert "=C3=A9" not in result.markdown
+    assert "vCard Version: 2.1" in result.markdown

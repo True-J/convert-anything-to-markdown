@@ -10,6 +10,30 @@ from convert_anything_md.extractors.base import (
 """vCard (.vcf) -> Markdown extractor"""
 
 
+def _join_qp_soft_breaks(text: str) -> str:
+    """Unfold vCard 2.1 QUOTED-PRINTABLE soft line breaks.
+
+    In 2.1 files a QUOTED-PRINTABLE value may end a physical line with ``=``
+    and continue on the next line without the leading space that normal
+    folding uses. vobject only understands space-folding, so join those lines
+    before parsing. Lines on non-QUOTED-PRINTABLE properties are untouched.
+    """
+    lines = text.splitlines()
+    out: list[str] = []
+    in_qp = False
+    for line in lines:
+        if in_qp and out:
+            out[-1] = out[-1][:-1] + line
+        else:
+            out.append(line)
+            head = line.split(":", 1)[0].upper()
+            if "QUOTED-PRINTABLE" not in head:
+                in_qp = False
+                continue
+        in_qp = out[-1].endswith("=")
+    return "\r\n".join(out) + "\r\n"
+
+
 class VCFExtractor:
     """Extracts Markdown from vCard files (.vcf)."""
 
@@ -82,11 +106,11 @@ class VCFExtractor:
             ("Suffix", "suffix"),
         ],
         "ADR": [
-            ("PO Box", "po box"),
-            ("Apt/Suite", "apt/suite"),
+            ("PO Box", "box"),
+            ("Apt/Suite", "extended"),
             ("Street", "street"),
             ("City", "city"),
-            ("Region/State", "region/state"),
+            ("Region/State", "region"),
             ("Postal Code", "code"),
             ("Country", "country"),
         ],
@@ -120,7 +144,9 @@ class VCFExtractor:
             raise ExtractorError(f"Failed to read file {path}: {err}") from err
 
         try:
-            components = list(vobject.readComponents(vcard_data))
+            components = list(
+                vobject.readComponents(_join_qp_soft_breaks(vcard_data))
+            )
         except Exception as err:
             raise ExtractorError(f"Failed to parse vCard data: {err}") from err
 
