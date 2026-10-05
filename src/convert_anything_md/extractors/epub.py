@@ -25,7 +25,7 @@ class EpubExtractor:
 
     def extract(self, path: Path) -> ExtractionResult:
         try:
-            from ebooklib import epub
+            from ebooklib import ITEM_DOCUMENT, epub
         except ImportError as exc:
             raise ExtractorUnavailable("ebooklib is not installed") from exc
 
@@ -48,12 +48,17 @@ class EpubExtractor:
             parts.append(f"_by {author}_")
 
         chapter_count = 0
-        # Items are EpubHtml when they have content; spine dictates order.
-        try:
-            from ebooklib import ITEM_DOCUMENT
+        warnings: list[str] = []
+        items = []
+        for idref, _linear in book.spine:
+            item = book.get_item_with_id(idref)
+            if item is None or item.get_type() != ITEM_DOCUMENT:
+                warnings.append(f"invalid EPUB spine reference: {idref}")
+                continue
+            items.append(item)
+        if not items:
+            warnings.append("EPUB spine has no readable documents; using manifest order")
             items = list(book.get_items_of_type(ITEM_DOCUMENT))
-        except Exception:  # noqa: BLE001
-            items = list(book.get_items())
 
         for item in items:
             try:
@@ -100,6 +105,7 @@ class EpubExtractor:
             word_count=word_count(markdown),
             duration_ms=duration_ms,
             fallback_chain=[self.name],
+            warnings=warnings,
             extra={"author": author} if author else {},
         )
 
